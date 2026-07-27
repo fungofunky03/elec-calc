@@ -15,7 +15,7 @@ function normalizeInput(args) {
   }
 
   if (args.length < 4) {
-    throw new Error('Voltage drop direct mode requires current, distance, voltage, and wire size');
+    throw new Error('When providing arguments directly, specify current, distance, voltage, and wire size');
   }
 
   const [current, distance, voltage, wireSize, phase] = args;

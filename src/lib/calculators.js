@@ -276,6 +276,7 @@ export function calculateWireSize({
 
   const adjustedCurrent = current * continuousMultiplier;
   const requiredAmpacity = adjustedCurrent / deratingFactor;
+  const nearMinimumThreshold = requiredAmpacity * (1 + wireSizingReference.nearMinimumWarningPercent / 100);
 
   let recommendedWire = null;
   let selectedAmpacity = null;
@@ -304,7 +305,7 @@ export function calculateWireSize({
     nextWire,
     warnings: [
       ...(!recommendedWire ? ['Load current exceeds standard wire ampacities! Consider parallel conductors.'] : []),
-      ...(recommendedWire && selectedAmpacity < requiredAmpacity * (1 + wireSizingReference.nearMinimumWarningPercent / 100)
+      ...(recommendedWire && selectedAmpacity < nearMinimumThreshold
         ? ['Wire size is close to minimum - consider next size up for safety margin.']
         : [])
     ]

@@ -168,8 +168,6 @@ export const conduitFill = {
   }
 };
 
-export const conduitTypes = Object.keys(conduitFill);
-
 export function getConduitFill(type, size, wireSize) {
   return conduitFill[type]?.[size]?.fill?.[wireSize] || 0;
 }
@@ -179,7 +177,7 @@ export function getConduitArea(type, size) {
 }
 
 export function getConduitTypes() {
-  return [...conduitTypes];
+  return Object.keys(conduitFill);
 }
 
 export function getConduitSizes(type) {
