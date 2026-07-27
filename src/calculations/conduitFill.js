@@ -59,7 +59,7 @@ async function checkConduitFill(prefilledInputs = null) {
       type: 'list',
       name: 'wireSize',
       message: 'Wire size:',
-      choices: (answers) => getConduitWireSizes(answers.conduitType, answers.conduitSize)
+      choices: (answers) => getSupportedConduitWireSizes(answers.conduitType)
         .map(size => ({ name: `${size} AWG`, value: size }))
     },
     {
