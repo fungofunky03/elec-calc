@@ -1,0 +1,28 @@
+{
+  "name": "elec-calc",
+  "version": "1.0.0",
+  "description": "Professional electrical calculations CLI for electricians",
+  "main": "src/index.js",
+  "type": "module",
+  "bin": {
+    "elec": "./src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "build": "pkg src/index.js -t node18-macos-arm64 -o dist/elec-calc-macos",
+    "install-global": "npm link"
+  },
+  "keywords": ["electrical", "calculations", "conduit", "voltage", "electrician"],
+  "author": "Conner Smith",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "inquirer": "^9.2.12",
+    "commander": "^11.1.0",
+    "cli-table3": "^0.6.3",
+    "boxen": "^7.1.1"
+  },
+  "devDependencies": {
+    "pkg": "^5.8.1"
+  }
+}
