@@ -1,6 +1,6 @@
 # 🔌 Elec-Calc Features
 
-## Complete Professional Electrical Calculations
+## Electrical Calculation Features
 
 ### ⚡ Voltage Drop Calculator
 - Supports all standard wire sizes (14 AWG to 1000 kcmil)
@@ -10,21 +10,21 @@
 - Distance, current, voltage, and wire size inputs
 
 ### 🔧 Conduit Fill & Sizing
-- NEC Table lookup for EMT, RMC, PVC, FMC
+- Bundled conduit table lookup for supported conduit types
 - Check existing conduit/wire combinations
 - Size conduit for given wire count
 - Interactive fill percentage tables
-- All standard conduit sizes (1/2" to 4")
+- EMT coverage from 1/2" to 4"
 
 ### 🏠 Service Entrance Calculations
-- **Residential**: Full NEC 220.82 load calculations
+- **Residential**: Simplified dwelling load estimates
   - General lighting (3 VA/sq ft)
   - Small appliance and laundry circuits
-  - Range and dryer demand factors
+  - Simplified range and dryer demand factors
   - HVAC and water heater loads
   - Automatic service size recommendation
 
-- **Commercial**: Basic demand calculations
+- **Commercial**: Basic demand estimates
   - Connected load vs demand load
   - Industry-specific demand factors
   - 480V three-phase calculations
@@ -61,8 +61,8 @@
 - **Cross-platform** - Works on any Node.js environment
 
 ## Professional Features
-- **NEC Code Compliance** - Based on current code requirements
-- **Real-world data** - Industry-standard wire and conduit tables
+- **Reference-driven outputs** - Based on bundled wire and conduit tables
+- **Real-world data** - Industry-standard wire tables plus supported conduit tables
 - **Safety margins** - Built-in recommendations for oversizing
 - **Multiple standards** - Supports various temperature ratings and conditions
 

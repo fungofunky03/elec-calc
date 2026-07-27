@@ -168,8 +168,7 @@ export const conduitFill = {
   }
 };
 
-export const conduitTypes = ['EMT', 'RMC', 'PVC', 'FMC'];
-export const conduitSizes = ['1/2', '3/4', '1', '1-1/4', '1-1/2', '2', '2-1/2', '3', '3-1/2', '4'];
+export const conduitTypes = Object.keys(conduitFill);
 
 export function getConduitFill(type, size, wireSize) {
   return conduitFill[type]?.[size]?.fill?.[wireSize] || 0;
@@ -177,4 +176,28 @@ export function getConduitFill(type, size, wireSize) {
 
 export function getConduitArea(type, size) {
   return conduitFill[type]?.[size]?.area || 0;
+}
+
+export function getConduitTypes() {
+  return [...conduitTypes];
+}
+
+export function getConduitSizes(type) {
+  return Object.keys(conduitFill[type] || {});
+}
+
+export function getConduitWireSizes(type, size) {
+  return Object.keys(conduitFill[type]?.[size]?.fill || {});
+}
+
+export function getSupportedConduitWireSizes(type) {
+  const wireSizes = new Set();
+
+  for (const size of getConduitSizes(type)) {
+    for (const wireSize of getConduitWireSizes(type, size)) {
+      wireSizes.add(wireSize);
+    }
+  }
+
+  return [...wireSizes];
 }
