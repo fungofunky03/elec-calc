@@ -31,7 +31,7 @@ export function calculateVoltageDrop({
   const voltageAtLoad = systemVoltage - dropVolts;
   const powerLossWatts = selectedPhase === 'three'
     ? (3 * loadCurrent * loadCurrent * runDistance * resistance) / 1000
-    : loadCurrent * dropVolts;
+    : (2 * loadCurrent * loadCurrent * runDistance * resistance) / 1000;
 
   return {
     wireSize,
