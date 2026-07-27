@@ -9,6 +9,7 @@
   },
   "scripts": {
     "start": "node src/index.js",
+    "test": "node --test",
     "build": "pkg src/index.js -t node18-macos-arm64 -o dist/elec-calc-macos",
     "install-global": "npm link"
   },

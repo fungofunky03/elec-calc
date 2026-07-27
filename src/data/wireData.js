@@ -1,3 +1,9 @@
+export const wireSizes = [
+  '14', '12', '10', '8', '6', '4', '3', '2', '1',
+  '1/0', '2/0', '3/0', '4/0', '250', '300', '350',
+  '400', '500', '600', '700', '750', '800', '900', '1000'
+];
+
 // Wire resistance data (ohms per 1000 feet at 75°C)
 export const wireResistance = {
   '14': 3.07,
@@ -83,5 +89,5 @@ export const wireArea = {
 };
 
 export function getWireList() {
-  return Object.keys(wireResistance);
+  return [...wireSizes];
 }

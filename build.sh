@@ -14,8 +14,8 @@ fi
 mkdir -p dist
 
 # Build the binary
-pkg src/index.js --targets node18-macos-arm64 --output dist/elec-calc
+pkg src/index.js --targets node18-macos-arm64 --output dist/elec-calc-macos
 
-echo "✅ Build complete! Binary created at: dist/elec-calc"
-echo "📱 Test it: ./dist/elec-calc --help"
-echo "🚀 Install it: cp dist/elec-calc /usr/local/bin/"
+echo "✅ Build complete! Binary created at: dist/elec-calc-macos"
+echo "📱 Test it: ./dist/elec-calc-macos --help"
+echo "🚀 Install it: cp dist/elec-calc-macos /usr/local/bin/elec"

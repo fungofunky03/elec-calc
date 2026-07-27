@@ -1,13 +1,29 @@
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import Table from 'cli-table3';
-import { conduitFill as conduitData, conduitTypes, conduitSizes, getConduitFill } from '../data/conduitData.js';
-import { wireArea, getWireList } from '../data/wireData.js';
-import { displayResult, showWarning } from '../ui/display.js';
+import { getConduitSizes, getConduitTypes, getConduitWireSizes, getSupportedConduitWireSizes } from '../data/conduitData.js';
+import { calculateConduitFillCheck, calculateConduitSize, getConduitFillTable } from '../lib/calculators.js';
+import { validateNumericInput } from '../lib/validation.js';
+import { displayResult, showError, showWarning } from '../ui/display.js';
 
-export async function conduitFill() {
+export async function conduitFill(options = {}) {
   console.log(chalk.bold.cyan('\n🔧 CONDUIT FILL CALCULATION\n'));
-  
+
+  if (options.mode) {
+    if (options.mode === 'table') {
+      await showConduitTable(options);
+      return;
+    }
+
+    if (options.mode === 'check') {
+      await checkConduitFill(options);
+      return;
+    }
+
+    await sizeConduit(options);
+    return;
+  }
+
   const { mode } = await inquirer.prompt([{
     type: 'list',
     name: 'mode',
@@ -18,21 +34,15 @@ export async function conduitFill() {
       { name: 'View conduit fill table', value: 'table' }
     ]
   }]);
-  
-  if (mode === 'table') {
-    await showConduitTable();
-    return;
-  }
-  
-  if (mode === 'check') {
-    await checkConduitFill();
-  } else {
-    await sizeConduit();
-  }
+
+  if (mode === 'table') await showConduitTable();
+  else if (mode === 'check') await checkConduitFill();
+  else await sizeConduit();
 }
 
-async function checkConduitFill() {
-  const inputs = await inquirer.prompt([
+async function checkConduitFill(prefilledInputs = null) {
+  const conduitTypes = getConduitTypes();
+  const inputs = prefilledInputs || await inquirer.prompt([
     {
       type: 'list',
       name: 'conduitType',
@@ -43,47 +53,50 @@ async function checkConduitFill() {
       type: 'list',
       name: 'conduitSize',
       message: 'Conduit size:',
-      choices: conduitSizes
+      choices: (answers) => getConduitSizes(answers.conduitType)
     },
     {
       type: 'list',
       name: 'wireSize',
       message: 'Wire size:',
-      choices: getWireList().map(size => ({ name: `${size} AWG`, value: size }))
+      choices: (answers) => getSupportedConduitWireSizes(answers.conduitType)
+        .map(size => ({ name: `${size} AWG`, value: size }))
     },
     {
       type: 'input',
       name: 'wireCount',
       message: 'Number of conductors:',
-      validate: (value) => {
-        const num = parseInt(value);
-        return !isNaN(num) && num > 0 || 'Please enter a valid number';
-      }
+      validate: (value) => validateNumericInput(value, { name: 'Number of conductors', min: 1, integer: true })
     }
   ]);
-  
-  const maxFill = getConduitFill(inputs.conduitType, inputs.conduitSize, inputs.wireSize);
-  const wireCount = parseInt(inputs.wireCount);
-  const fillPercent = maxFill > 0 ? (wireCount / maxFill * 100) : 999;
-  
-  const results = {
-    'Conduit': `${inputs.conduitSize}" ${inputs.conduitType}`,
-    'Wire Size': `${inputs.wireSize} AWG`,
-    'Conductors': wireCount.toString(),
-    'Maximum Fill': maxFill.toString(),
-    'Fill Percentage': `${fillPercent.toFixed(1)}%`,
-    'Status': fillPercent <= 100 ? '✅ ACCEPTABLE' : '❌ OVERFILLED'
-  };
-  
-  displayResult('CONDUIT FILL CHECK', results);
-  
-  if (fillPercent > 100) {
-    showWarning(`Exceeds NEC fill limits! Maximum ${maxFill} conductors allowed.`);
+
+  try {
+    const result = calculateConduitFillCheck(inputs);
+    const results = {
+      'Conduit': `${result.conduitSize}" ${result.conduitType}`,
+      'Wire Size': `${result.wireSize} AWG`,
+      'Conductors': result.conductors.toString(),
+      'Maximum Fill': result.maxFill.toString(),
+      'Fill Percentage': `${result.fillPercent.toFixed(1)}%`,
+      'Status': result.acceptable ? '✅ ACCEPTABLE' : '❌ OVERFILLED'
+    };
+
+    displayResult('CONDUIT FILL CHECK', results);
+
+    if (!result.acceptable) {
+      showWarning(`Exceeds bundled conduit fill limits! Maximum ${result.maxFill} conductors allowed.`);
+    }
+
+    return result;
+  } catch (error) {
+    showError(error.message);
+    return null;
   }
 }
 
-async function sizeConduit() {
-  const inputs = await inquirer.prompt([
+async function sizeConduit(prefilledInputs = null) {
+  const conduitTypes = getConduitTypes();
+  const inputs = prefilledInputs || await inquirer.prompt([
     {
       type: 'list',
       name: 'conduitType',
@@ -94,46 +107,37 @@ async function sizeConduit() {
       type: 'list',
       name: 'wireSize',
       message: 'Wire size:',
-      choices: getWireList().map(size => ({ name: `${size} AWG`, value: size }))
+      choices: (answers) => getSupportedConduitWireSizes(answers.conduitType)
+        .map(size => ({ name: `${size} AWG`, value: size }))
     },
     {
       type: 'input',
       name: 'wireCount',
       message: 'Number of conductors:',
-      validate: (value) => {
-        const num = parseInt(value);
-        return !isNaN(num) && num > 0 || 'Please enter a valid number';
-      }
+      validate: (value) => validateNumericInput(value, { name: 'Number of conductors', min: 1, integer: true })
     }
   ]);
-  
-  const wireCount = parseInt(inputs.wireCount);
-  let recommendedSize = null;
-  
-  for (const size of conduitSizes) {
-    const maxFill = getConduitFill(inputs.conduitType, size, inputs.wireSize);
-    if (maxFill >= wireCount) {
-      recommendedSize = size;
-      break;
-    }
-  }
-  
-  const results = {
-    'Wire Size': `${inputs.wireSize} AWG`,
-    'Conductors': wireCount.toString(),
-    'Conduit Type': inputs.conduitType,
-    'Minimum Size': recommendedSize ? `${recommendedSize}"` : 'Not possible with standard sizes'
-  };
-  
-  displayResult('CONDUIT SIZING', results);
-  
-  if (!recommendedSize) {
-    showWarning('Wire count exceeds largest standard conduit size!');
+
+  try {
+    const result = calculateConduitSize(inputs);
+    const results = {
+      'Wire Size': `${result.wireSize} AWG`,
+      'Conductors': result.conductors.toString(),
+      'Conduit Type': result.conduitType,
+      'Minimum Size': `${result.minimumSize}"`
+    };
+
+    displayResult('CONDUIT SIZING', results);
+    return result;
+  } catch (error) {
+    showError(error.message);
+    return null;
   }
 }
 
-async function showConduitTable() {
-  const { conduitType, wireSize } = await inquirer.prompt([
+async function showConduitTable(prefilledInputs = null) {
+  const conduitTypes = getConduitTypes();
+  const inputs = prefilledInputs || await inquirer.prompt([
     {
       type: 'list',
       name: 'conduitType',
@@ -144,35 +148,38 @@ async function showConduitTable() {
       type: 'list',
       name: 'wireSize',
       message: 'Wire size:',
-      choices: getWireList().map(size => ({ name: `${size} AWG`, value: size }))
+      choices: (answers) => getSupportedConduitWireSizes(answers.conduitType)
+        .map(size => ({ name: `${size} AWG`, value: size }))
     }
   ]);
-  
-  const table = new Table({
-    head: [
-      chalk.bold.cyan('Size'),
-      chalk.bold.cyan('Max Conductors'),
-      chalk.bold.cyan('Area (sq in)')
-    ],
-    style: {
-      head: [],
-      border: ['cyan']
-    }
-  });
-  
-  conduitSizes.forEach(size => {
-    const maxFill = getConduitFill(conduitType, size, wireSize);
-    const area = conduitData[conduitType]?.[size]?.area || 0;
-    
-    if (maxFill > 0) {
+
+  try {
+    const rows = getConduitFillTable(inputs);
+    const table = new Table({
+      head: [
+        chalk.bold.cyan('Size'),
+        chalk.bold.cyan('Max Conductors'),
+        chalk.bold.cyan('Area (sq in)')
+      ],
+      style: {
+        head: [],
+        border: ['cyan']
+      }
+    });
+
+    rows.forEach((row) => {
       table.push([
-        `${size}"`,
-        maxFill.toString(),
-        area.toFixed(3)
+        `${row.size}"`,
+        row.maxConductors.toString(),
+        row.area.toFixed(3)
       ]);
-    }
-  });
-  
-  console.log(`\n${chalk.bold.yellow(`${wireSize} AWG in ${conduitType} Conduit`)}`);
-  console.log(table.toString());
+    });
+
+    console.log(`\n${chalk.bold.yellow(`${inputs.wireSize} AWG in ${inputs.conduitType} Conduit`)}`);
+    console.log(table.toString());
+    return rows;
+  } catch (error) {
+    showError(error.message);
+    return null;
+  }
 }
